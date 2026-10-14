@@ -5,9 +5,9 @@
 # A tool for architects to generate walking/cycling/driving isochrones, overlay
 # OSM amenities, and export as a QGIS-ready .gpkg
 #
-# Requires an OpenRouteService API key (free): https://openrouteservice.org/dev/#/signup
-# Set it as the ORS_API_KEY environment variable (see README.md).
-# ---------------------------------------------------------------------------
+# Needs a free OpenRouteService API key: https://openrouteservice.org/dev/#/signup
+# The CARTO basemap also needs a free API key: https://carto.com/basemaps/apikey
+# ----------------------------------
 
 library(shiny)
 library(bslib)
@@ -20,7 +20,17 @@ library(callr)
 
 source("helpers.R")
 
-ORS_API_KEY <- Sys.getenv("ORS_API_KEY")
+ORS_API_KEY   <- Sys.getenv("ORS_API_KEY")
+CARTO_API_KEY <- Sys.getenv("CARTO_API_KEY")
+
+# For carto base maps
+CARTO_TILE_URL <- paste0(
+  "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=", CARTO_API_KEY
+)
+CARTO_ATTRIBUTION <- paste0(
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ',
+  '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+)
 
 # ---------------------------------------------------------------------------
 # User Interface
@@ -71,7 +81,7 @@ ui <- page_fillable(
         "If the amenity lookup fails (the public Overpass server can be slow), try: ",
         tags$a("Overpass tool", href = "https://overpass-turbo.eu/", target = "_blank")
       ),
-  
+      
       selectizeInput(
         "amenity_tags", NULL,
         choices = AMENITY_PRESETS, multiple = TRUE,
@@ -111,10 +121,28 @@ server <- function(input, output, session) {
   current_amenity_groups <- reactiveVal(character(0)) # map layer-control group names, one per OSM tag
   
   output$map <- renderLeaflet({
-    leaflet() |>
-      addProviderTiles(providers$CartoDB.Positron) |>
-      setView(lng = -8.544, lat = 42.881, zoom = 12)  # default: Galicia
+    base <- leaflet()
+    
+    if (nzchar(CARTO_API_KEY)) {
+      base <- base |> addTiles(
+        urlTemplate = CARTO_TILE_URL,
+        attribution = CARTO_ATTRIBUTION,
+        options = tileOptions(maxZoom = 20)
+      )
+    } else {
+      # No CARTO key set: fall back to standard OSM tiles (fine for light use)
+      base <- base |> addTiles()
+    }
+    
+    base |> setView(lng = -8.544, lat = 42.881, zoom = 12)  # default: Galicia
   })
+  
+  if (!nzchar(CARTO_API_KEY)) {
+    showNotification(
+      "CARTO_API_KEY is not set, so the app is using the standard OpenStreetMap basemap.",
+      type = "message", duration = 8
+    )
+  }
   
   # Set origin: click on map 
   observeEvent(input$map_click, {
