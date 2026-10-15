@@ -2,18 +2,20 @@
 
 An interactive R Shiny tool that answers spatial accessibility questions for non-technical users.
 
-Click a point on the map (or search an address), pick travel modes and OpenStreetMap amenities, and the app draws travel time isochrones, overlays the amenities that fall inside them, and exports everything as a **QGIS-ready GeoPackage**.
+<p align="center">
+  <img src="docs/demo.gif" alt="Isochrone app demo" width="500">
+</p>
 
+Click a point on the map (or search an address), pick travel modes and OpenStreetMap amenities, and the app draws travel time isochrones, overlays the amenities that fall inside them, and exports everything as a **QGIS-ready GeoPackage**.
+  
 I built it during my internship at Fundación RIA so that architects could run accessibility analyses for site and exhibition research without writing code or opening a GIS.
 
 
 
 ## Demo
-Walking, cycling, and driving isochrones for Pharmacy accessibility in Portobravo
+Walking, cycling, and driving isochrones for Pharmacy accessibility in Portobravo. Mode comparison with layer control
 
 https://github.com/user-attachments/assets/7d2e55ba-4185-4426-8010-3a1833453aff
-
-![Multi-mode comparison with layer control](docs/demo.gif)
 
 ## Features
 
